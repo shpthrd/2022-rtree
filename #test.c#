@@ -1,0 +1,145 @@
+
+ #include "index.h"
+ #include <stdio.h>
+ #include <math.h>
+ #include <time.h>
+ #include <sys/time.h>
+ #include <inttypes.h>
+
+
+
+ //função do código original, não usada neste trabalha
+ //mantida para possível uso futuro
+ int MySearchCallback(int id, void* arg)
+ {
+   return 1; // keep going
+ }
+
+
+ int main(int argc, char **argv){
+
+   //dois parâmetros de entrada
+   //1: quantidade de dados
+   //2: quantidade de threads
+   int id[MAXTHR];
+   if(argc!=3){
+     printf("digite o tamanho do vetor e o número de threads\n");
+     exit(1);
+   }
+
+   //VERIFICAÇÃO DE PARAMETROS
+   int n_rects = atoi(*(argv+1));
+   MAXTHR = atoi(*(argv+2));
+   if(n_rects<=0){
+     printf("input invalido\n" );
+     exit(1);
+   }
+
+   //VARIÁVEL DOS DADOS A SEREM INSERIDOS
+   struct Rect *rects = malloc(sizeof(struct Rect) * n_rects);
+   //n_search1~5 a quantidade de dados encontrados nas pesquisas
+   //t_search1~5 o tempo gasto por cada pesquisa
+   int i, n_search1,n_search5;
+   double t_search1,t_search5;
+   //node raiz
+   struct Node* root = RTreeNewIndex();
+
+   //GERADOR DOS VETORES
+   for(i=0;i<n_rects;i++){
+     int j;
+     for(j=0;j<NUMSIDES;j++){
+       if(j<NUMDIMS)
+	 rects[i].boundary[j]=i;
+       else
+	 rects[i].boundary[j]=i+1;
+     }
+
+   }
+
+   //vetor usado para parar os threads
+   kill = malloc(sizeof(struct Node));
+   kill->level=-1;
+
+   //inserindo os dados na árvore a partir da raiz
+   for(i=0;i<n_rects;i++)
+     RTreeInsertRect(&rects[i],i+1,&root,0);
+
+   //rect a ser pesquisado(tamanho total, engloba todos os dados inseridos)
+   struct Rect rect_search ;
+   for(i=0;i<NUMSIDES/2;i++)
+     rect_search.boundary[i]=0;
+
+   for(i=NUMSIDES/2;i<NUMSIDES;i++)
+     rect_search.boundary[i]=n_rects+1;
+
+
+
+   //RTREESEARCH
+   uint64_t diff;
+   struct timespec tick, tock;
+   clock_gettime(CLOCK_REALTIME, &tick);
+   n_search1 = RTreeSearch(root, &rect_search, MySearchCallback, 0);
+   clock_gettime(CLOCK_REALTIME, &tock);
+
+   diff = NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec;
+   t_search1 =  (double)diff/NANOS;
+
+   //RTREESEARCHPARALELA
+   pthread_t thre[MAXTHR];
+   struct Queue* q;
+   QueueInit(&q);
+   q->active= MAXTHR;
+   q->sum=0;
+   q->size=0;
+   q->maxSize=0;
+   q->count=0;
+
+   uint64_t diff5;
+   struct timespec tick5, tock5;
+   Data s_search5[MAXTHR];
+   n_search5=0;
+   q->active= 0;
+   q->inactive =MAXTHR;
+   double t_wait[MAXTHR];
+   double t_sch[MAXTHR];
+   for(i=0;i<MAXTHR;i++){
+     s_search5[i].node=NULL;
+     s_search5[i].rect = &rect_search;
+     s_search5[i].queue = &q;
+     s_search5[i].hits = &n_search5;
+     s_search5[i].time_wait = &t_wait[i];
+     s_search5[i].time_search = &t_sch[i];
+     s_search5[i].indice = i;
+     //pthread_create(&thre[i],NULL,InitThread,&s_search5[i]);
+   }
+   //printf("teste00\n");
+   for(i=0;i<root->count;i++)QueuePush(&q,(root->branch[i].child));
+   clock_gettime(CLOCK_REALTIME, &tick5);
+   //QueuePush(&q,root);
+   for(i=0;i<MAXTHR;i++)pthread_create(&thre[i],NULL,InitThread,&s_search5[i]);
+
+   //printf("teste01\n");
+   for(i=0;i<MAXTHR;i++){pthread_join(thre[i],NULL);}
+   clock_gettime(CLOCK_REALTIME, &tock5);
+   //printf("teste02\n");
+   diff5 = NANOS * (tock5.tv_sec - tick5.tv_sec) + tock5.tv_nsec - tick5.tv_nsec;
+
+   t_search5 =  (double)diff5/NANOS;
+   //prints para ver a quantidade de dados encontrada e o tempo de cada pesquisa
+   printf("RTREESEARCH: %d | RTREESEARCHparalela: %d\n",n_search1,n_search5);
+   //printf("RTREESEARCH: %.6lf | RTREESEARCH3: %.6lf| RTREESEARCH4: %.6lf| RTREESEARCHPARALELA: %.6lf\n", t_search1, t_search3,t_search4,t_search5 );
+
+   //print que imprime apenas o tempo
+   printf("%.6lf\t%.6lf\n", t_search1,t_search5 );
+   for(i=0;i<MAXTHR;i++)
+     printf("tempo wait %d: %.6lf\ntempo search %d: %.6lf\n",i, *(s_search5[i].time_wait),i, *(s_search5[i].time_search));
+   double soma=0;
+   for(i=0;i<MAXTHR;i++)
+     soma += (*(s_search5[i].time_wait)) + (*(s_search5[i].time_search));
+   printf("%.6lf\n", soma);
+   printf("media: %ld\tcontador: %ld\tmax: %ld\n", q->sum/q->count,q->count,q->maxSize);
+   printf("tamanho da fila: %ld\n", q->size);
+   QueueKill(&q);
+
+   return 0;
+ }
