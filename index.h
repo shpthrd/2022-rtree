@@ -5,7 +5,7 @@
 //#define PGSIZE	512
 //ALTERAÇÃO DE DEFINE DO PGSIZE
 //tamanho do node
-#define PGSIZE	256 //11/06/2022 -> alterei de 64 para 128
+#define PGSIZE	128 //11/06/2022 -> alterei de 64 para 128
 #define NUMDIMS	3	/* number of dimensions */ //11/06/2022 -> alterei de 2 para 3
 #define NDEBUG
 //PGSIZE+NUMDIMS=MAXCARD -> 64+2=2 128+2=5 128+3=3 192+2=7* 192+3=5* 256+2=10 256+3=7
@@ -34,7 +34,7 @@ typedef float RectReal;
 #define NUMSIDES (2*NUMDIMS)
 #define ENTRY int
 #define NANOS ((unsigned long)1000000000)
-#define rpt 100
+#define rpt 10
 int MAXTHR;
 int threads;
 int total_threads;

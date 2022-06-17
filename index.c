@@ -22,9 +22,7 @@ struct Node * RTreeNewIndex()
 //
 
 
-//versão original da busca
-//int RTreeSearch(struct Node *N, struct Rect *R, SearchHitCallback shcb, void* cbarg)
-int RTreeSearch(struct Node *N, struct Rect *R)//, SearchHitCallback shcb, void* cbarg)
+int RTreeSearch(struct Node *N, struct Rect *R)
 {
   register struct Node *n = N;
   register struct Rect *r = R; // NOTE: Suspected bug was R sent in as Node* and cast to Rect* here. Fix not yet tested.
@@ -35,7 +33,7 @@ int RTreeSearch(struct Node *N, struct Rect *R)//, SearchHitCallback shcb, void*
   assert(n->level >= 0);
   assert(r);
 
-  linear_total++;
+  //linear_total++;
 
   if (n->level > 0) /* this is an internal node in the tree */
   {
@@ -65,8 +63,6 @@ int RTreeSearch(struct Node *N, struct Rect *R)//, SearchHitCallback shcb, void*
     }
 //=================================================================================================================================
 
-
-
 //a versão paralela trabalha com pthreads e fila,
 //esta versão conta com uma função auxiliar que ao terminar uma busca, espera na fila por outro node a ser adicionado
 //cada thread da busca trabalha em sequencia, até um dos threads ficar ocioso,
@@ -77,15 +73,15 @@ void* RTreeSearchParalela(void* arg){
   Data* data = (Data*) arg;
   register struct Node* n = *(data->node);
   int i;
-  int pushToggle = 0;
+  //int pushToggle = 0;
   //__sync_fetch_and_add(total_nodes,1);
   if (n->level > 0) /* this is an internal node in the tree */
   {
     for (i=0; i<NODECARD; i++)
     if ((n->branch[i]).child && RTreeOverlap(rect_search,&(n->branch[i].rect))){
-      pushToggle++;
-      if(pushToggle%2 == 0 && queue->inactive>0){//alterna entre push e fazer o trabalho local
-      //if(queue->inactive>0){
+      //pushToggle++;
+      //if(pushToggle%2 == 0 && queue->inactive>0){//alterna entre push e fazer o trabalho local
+      if(queue->inactive>0){
         QueuePush((n->branch[i]).child);
       }
       else{

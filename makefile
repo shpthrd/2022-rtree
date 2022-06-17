@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -W -Wall -fpermissive -O3 -lm -D_REENTRANT -lpthread
+CFLAGS=-g -W -Wall -O3 -lm -D_REENTRANT -lpthread
 
 gen: index.o rect.o card.o queue.o split_q.o node.o gen.o
 	$(CC) gen.o index.o node.o rect.o card.o queue.o split_q.o -o gen $(CFLAGS)
