@@ -60,6 +60,7 @@ int main(int argc, char **argv){
 	else{
 		n = 1000;
 	}
+	
 	for(n;n<=n_rects;n=n*10){
 
 	clock_gettime(CLOCK_REALTIME, &tick_ins);
@@ -207,17 +208,18 @@ int main(int argc, char **argv){
 	printf("avg by threads in linear: %.6lf\n",t_searchthread_linear);
 	for(i=0;i<MAXTHR-1;i++){
 		printf("avg with %d threads: ",i+2);
-		if(colorPrint == 1)
-		if(t_searchthread_parallel[i]<=t_searchthread_linear){
-			printf("\033[0;32m");
-		}
-		else{
-			printf("\033[0;31m");
+		if(colorPrint == 1){
+			if(t_searchthread_parallel[i]<=t_searchthread_linear){
+				printf("\033[0;32m");
+			}
+			else{
+				printf("\033[0;31m");
+			}
 		}
 
 		printf("%.6lf\n",t_searchthread_parallel[i]);
 		if(colorPrint == 1)
-		printf("\033[0;37m");
+			printf("\033[0;37m");
 	}
 	n_init = n;
 	}
