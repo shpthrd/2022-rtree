@@ -1,4 +1,4 @@
-CC=gcc
+CC=gcc-9
 CFLAGS=-g -W -Wall -O3 -lm -D_REENTRANT -lpthread
 
 gen: index.o rect.o card.o queue.o split_q.o node.o gen.o
