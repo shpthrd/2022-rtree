@@ -1,2 +1,6 @@
 #Object Files
 .o
+
+#Output
+.text
+.output

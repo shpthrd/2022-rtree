@@ -2,11 +2,15 @@
 #include <stdio.h>
 
 int main(int argc, char **argv){
-
+	uint64_t diff_p;
+	struct timespec tick_p, tock_p;
+	clock_gettime(CLOCK_REALTIME, &tick_p);
+	
 	//dois parâmetros de entrada
 	//1: quantidade de dados
 	//2: quantidade de threads
-	if(argc!=3){
+	//3: color printf
+	if(argc<3){
 		printf("digite o tamanho do vetor e o número de threads\n");
 		exit(1);
 	}
@@ -18,7 +22,13 @@ int main(int argc, char **argv){
 			printf("input invalido\n" );
 			exit(1);
 	}
-	
+	int colorPrint = 0;
+	if(argc>=4){
+		printf("%s\n",*(argv+3));
+		if(atoi(*(argv+3))==1){
+			colorPrint = 1;
+		}
+	}
 	struct Rect *rects = malloc(sizeof(struct Rect) * n_rects);
 	double t_searchsum_linear,t_searchsum_parallel;
 	int i;
@@ -36,6 +46,12 @@ int main(int argc, char **argv){
 	//node raiz
 	struct Node* root = RTreeNewIndex();
 
+	uint64_t diff_ins;
+	double t_insertion = 0;
+	double t_insertionsum = 0;
+	struct timespec tick_ins, tock_ins;
+	
+
 	int n;
 	int n_init=0;
 	if(n_rects <=1000){
@@ -46,10 +62,16 @@ int main(int argc, char **argv){
 	}
 	for(n;n<=n_rects;n=n*10){
 
-	
+	clock_gettime(CLOCK_REALTIME, &tick_ins);
 	//inserindo os dados na árvore a partir da raiz
 	for(i=n_init;i<n;i++)
 		RTreeInsertRect(&rects[i],i+1,&root,0);
+
+	clock_gettime(CLOCK_REALTIME, &tock_ins);
+	diff_ins = NANOS * (tock_ins.tv_sec - tick_ins.tv_sec) + tock_ins.tv_nsec - tick_ins.tv_nsec;
+	t_insertion =  (double)diff_ins/NANOS;
+	t_insertionsum += t_insertion;
+	printf("\ntime of insertion of %d points: %.6lf\n",n-n/10,t_insertion);
 
 	//rect a ser pesquisado(tamanho total, engloba todos os dados inseridos)
 	rect_search = malloc(sizeof(struct Rect));
@@ -167,6 +189,7 @@ int main(int argc, char **argv){
 			free(total_nodes);
 			free(kill);
 		}
+		
 		printf("RTREESEARCH: %d \t RTREESEARCHparalela: %d\n",n_search_linear,n_search_parallel);
 
 		printf("NUMERO DE THREADS: %d\n",THRDCOUNT);
@@ -184,19 +207,27 @@ int main(int argc, char **argv){
 	printf("avg by threads in linear: %.6lf\n",t_searchthread_linear);
 	for(i=0;i<MAXTHR-1;i++){
 		printf("avg with %d threads: ",i+2);
+		if(colorPrint == 1)
 		if(t_searchthread_parallel[i]<=t_searchthread_linear){
 			printf("\033[0;32m");
 		}
 		else{
 			printf("\033[0;31m");
 		}
+
 		printf("%.6lf\n",t_searchthread_parallel[i]);
+		if(colorPrint == 1)
 		printf("\033[0;37m");
 	}
 	n_init = n;
 	}
 	//printf("\033[1;31m");
 	printf("MAXCARD: %d\n",MAXCARD);
+	printf("total time of insertion: %.6lf\n",t_insertionsum);
+	
+	clock_gettime(CLOCK_REALTIME, &tock_p);
+	diff_p = NANOS * (tock_p.tv_sec - tick_p.tv_sec) + tock_p.tv_nsec - tick_p.tv_nsec;
+	printf("total time: %.6lf\n",(double)diff_p/NANOS);
 	
 	return 0;
 }
