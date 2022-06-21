@@ -24,7 +24,6 @@ int main(int argc, char **argv){
 	}
 	int printOption = 0;
 	if(argc>=4){
-		printf("%s\n",*(argv+3));
 		if(atoi(*(argv+3))==1){
 			printOption = 1;
 		}
@@ -74,7 +73,7 @@ int main(int argc, char **argv){
 	diff_ins = NANOS * (tock_ins.tv_sec - tick_ins.tv_sec) + tock_ins.tv_nsec - tick_ins.tv_nsec;
 	t_insertion =  (double)diff_ins/NANOS;
 	t_insertionsum += t_insertion;
-	printf("\norder %d points| time of insertion: %.6lf\n",n,t_insertion);
+	printf("order %d points| time of insertion: %.6lf\n",n,t_insertion);
 
 	//rect a ser pesquisado(tamanho total, engloba todos os dados inseridos)
 	rect_search = malloc(sizeof(struct Rect));
@@ -98,6 +97,9 @@ int main(int argc, char **argv){
 		memset( t_worksum, 0, THRDCOUNT*sizeof(double) );
 		memset( t_waitsum, 0, THRDCOUNT*sizeof(double) );
 		int n_search_linear = 0,n_search_parallel = 0;
+
+		int count_queue = 0,max_queue =0;
+
 		//REPETIÇÕES
 		int k=0;
 		double time_per_repeat_parallel[rpt];
@@ -195,7 +197,10 @@ int main(int argc, char **argv){
 			printf("soma dos tempos wait e search: %.6lf\n", soma);
 			*/
 
-			//printf("QUEUE: media: %ld\tcontador: %ld\tmax: %ld\n", queue->sum/queue->count,queue->count,queue->maxSize);
+			//printf("QUEUE:contador: %ld\tmax: %ld\n",queue->count,queue->maxSize);
+			count_queue += queue->count;
+			max_queue += queue->maxSize;
+
 			//printf("nodes visitados| RTREESEARCH: %d | RTREESEARCHPARALELA:  %d\n",linear_total,*total_nodes);//no linear aparece um a mais porque o root não é contado no paralelo
 			//printf("tamanho da fila: %ld\n", queue->size);
 			QueueKill();
@@ -217,13 +222,14 @@ int main(int argc, char **argv){
 		linear_desvpad[THRDCOUNT-2] = sqrt(linear_desvpad[THRDCOUNT-2]/rpt);
 
 		printf("RTREESEARCH: %d \t RTREESEARCHparalela: %d\n",n_search_linear,n_search_parallel);
-
 		printf("NUMERO DE THREADS: %d\n",THRDCOUNT);
 		printf("THREAD \t\tWORK \t\tWAIT\n");
 		for(i=0;i<THRDCOUNT;i++){
 			printf("THREAD %d: \t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_waitsum[i]/rpt);
 		}
-		
+		count_queue = count_queue/rpt;
+		max_queue = max_queue/rpt;
+		printf("queue:count %d\tmax %d\n",count_queue,max_queue);
 		printf("#rpt: %d\n#linear avg:\tdesvpad:\n",rpt);
 		printf("%.6lf\t%.6lf\n",t_searchthread_linear[THRDCOUNT-2],linear_desvpad[THRDCOUNT-2]);
 		printf("parallel avg:\tdesvpad:\n");
@@ -231,13 +237,12 @@ int main(int argc, char **argv){
 		printf("\n");
 	}
 	//t_searchthread_linear = t_searchthread_linear/(MAXTHR-1);
-	printf("#resumo para %d\n",n);
 	//AQUI ESCOLHIDO O ZERO PARA COMPARAÇÃO MAS PODERIA SER QUALQUER UM
-	printf("#avg linear\tdesvpad\n");
+	printf("\"LINEAR-%d DATA %d THREADS\"\n",n,MAXTHR);
 	for(i=0;i<MAXTHR-1;i++){
 		printf("%d\t%.6lf\t%.6lf\n",i+2,t_searchthread_linear[i],linear_desvpad[i]);
 	}
-	printf("#avg parallel\tdesvpad\n");
+	printf("\n\n\"PARALLEL-%d DATA %d THREADS\"\n",n,MAXTHR);
 	for(i=0;i<MAXTHR-1;i++){
 		printf("%d\t",i+2);
 		if(printOption == 1){
@@ -253,6 +258,7 @@ int main(int argc, char **argv){
 		if(printOption == 1)
 			printf("\033[0;37m");
 	}
+	printf("=====================\n\n");
 	n_init = n;
 	}
 	//printf("\033[1;31m");
