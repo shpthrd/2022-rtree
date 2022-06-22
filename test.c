@@ -23,13 +23,20 @@ int main(int argc, char **argv){
 			exit(1);
 	}
 	int printOption = 0;
+	char* sufix;
 	if(argc>=4){
 		if(atoi(*(argv+3))==1){
 			printOption = 1;
 		}
-		else if(atoi(*(argv+3))==2)
+		else if(atoi(*(argv+3))==2){
 			printOption = 2;
+		}
+		else{
+			sufix = argv[3];
+		}
 	}
+	if(sufix != NULL)
+		printf("%s\n",sufix);
 	struct Rect *rects = malloc(sizeof(struct Rect) * n_rects);
 	double t_searchsum_linear,t_searchsum_parallel;
 	int i;
@@ -46,6 +53,9 @@ int main(int argc, char **argv){
 
 	//node raiz
 	struct Node* root = RTreeNewIndex();
+	FILE * file1,file2,file3;
+	//file1 para fazer os arquivos de delta t x n threads
+	//file2 e file3 para fazer os arquivos de delta t x delta dados
 
 	uint64_t diff_ins;
 	double t_insertion = 0;
@@ -236,13 +246,54 @@ int main(int argc, char **argv){
 		printf("%.6lf\t%.6lf\n",t_searchthread_parallel[THRDCOUNT-2],parallel_desvpad[THRDCOUNT-2]);
 		printf("\n");
 	}
-	//t_searchthread_linear = t_searchthread_linear/(MAXTHR-1);
-	//AQUI ESCOLHIDO O ZERO PARA COMPARAÇÃO MAS PODERIA SER QUALQUER UM
+	char file1Name[50] = "";
+	char temp[50];
+	strcat(file1Name,"THRD");
+	sprintf(temp,"%d",MAXTHR);
+	strcat(file1Name,temp);
+	strcat(file1Name,"-");
+	sprintf(temp,"%d",n);
+	strcat(file1Name,temp);
+	strcat(file1Name,"D-");
+	if(sufix != NULL)
+		strcat(file1Name,sufix);
+	strcat(file1Name,".plot");
+	printf("teste: %s\n",file1Name);
+	char output[1024] = "";
+	
 	printf("\"LINEAR-%d DATA %d THREADS\"\n",n,MAXTHR);
+	strcat(output,"\"LINEAR-");
+	sprintf(temp,"%d",n);
+	strcat(output,temp);
+	strcat(output," DATA ");
+	sprintf(temp,"%d",MAXTHR);
+	strcat(output,temp);
+	strcat(output," THREADS\"\n");
+
+	
 	for(i=0;i<MAXTHR-1;i++){
 		printf("%d\t%.6lf\t%.6lf\n",i+2,t_searchthread_linear[i],linear_desvpad[i]);
+		sprintf(temp,"%d",i+2);
+		strcat(output,temp);
+		strcat(output,"\t");
+		sprintf(temp,"%.6lf",t_searchthread_linear[i]);
+		strcat(output,temp);
+		strcat(output,"\t");
+		sprintf(temp,"%.6lf",linear_desvpad[i]);
+		strcat(output,temp);
+		strcat(output,"\n");
+
+
 	}
 	printf("\n\n\"PARALLEL-%d DATA %d THREADS\"\n",n,MAXTHR);
+	strcat(output,"\n\n\"PARALLEL-");
+	sprintf(temp,"%d",n);
+	strcat(output,temp);
+	strcat(output," DATA ");
+	sprintf(temp,"%d",MAXTHR);
+	strcat(output,temp);
+	strcat(output," THREADS\"\n");
+
 	for(i=0;i<MAXTHR-1;i++){
 		printf("%d\t",i+2);
 		if(printOption == 1){
@@ -255,11 +306,24 @@ int main(int argc, char **argv){
 		}
 
 		printf("%.6lf\t%.6lf\n",t_searchthread_parallel[i],parallel_desvpad[i]);
+		sprintf(temp,"%d",i+2);
+		strcat(output,temp);
+		strcat(output,"\t");
+		sprintf(temp,"%.6lf",t_searchthread_parallel[i]);
+		strcat(output,temp);
+		strcat(output,"\t");
+		sprintf(temp,"%.6lf",parallel_desvpad[i]);
+		strcat(output,temp);
+		strcat(output,"\n");
 		if(printOption == 1)
 			printf("\033[0;37m");
 	}
 	printf("=====================\n\n");
-	n_init = n;
+	printf("teste2\n%s end\n",output);
+	file1 = fopen(file1Name,"w");
+	fprintf(file1,output);
+	fclose(file1);
+	n_init = n;//?????????
 	}
 	//printf("\033[1;31m");
 	printf("MAXCARD: %d\n",MAXCARD);
