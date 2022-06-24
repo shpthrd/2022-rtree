@@ -53,7 +53,7 @@ int main(int argc, char **argv){
 
 	//node raiz
 	struct Node* root = RTreeNewIndex();
-	FILE * file1,file2,file3;
+	FILE * file1;
 	//file1 para fazer os arquivos de delta t x n threads
 	//file2 e file3 para fazer os arquivos de delta t x delta dados
 
@@ -84,7 +84,7 @@ int main(int argc, char **argv){
 	t_insertion =  (double)diff_ins/NANOS;
 	t_insertionsum += t_insertion;
 	printf("order %d points| time of insertion: %.6lf\n",n,t_insertion);
-
+	printf("height: %d\n",root->level);
 	//rect a ser pesquisado(tamanho total, engloba todos os dados inseridos)
 	rect_search = malloc(sizeof(struct Rect));
 	for(i=0;i<NUMSIDES/2;i++)
@@ -260,7 +260,8 @@ int main(int argc, char **argv){
 	strcat(file1Name,".plot");
 	printf("teste: %s\n",file1Name);
 	char output[1024] = "";
-	
+
+
 	printf("\"LINEAR-%d DATA %d THREADS\"\n",n,MAXTHR);
 	strcat(output,"\"LINEAR-");
 	sprintf(temp,"%d",n);
@@ -270,7 +271,6 @@ int main(int argc, char **argv){
 	strcat(output,temp);
 	strcat(output," THREADS\"\n");
 
-	
 	for(i=0;i<MAXTHR-1;i++){
 		printf("%d\t%.6lf\t%.6lf\n",i+2,t_searchthread_linear[i],linear_desvpad[i]);
 		sprintf(temp,"%d",i+2);
@@ -282,6 +282,7 @@ int main(int argc, char **argv){
 		sprintf(temp,"%.6lf",linear_desvpad[i]);
 		strcat(output,temp);
 		strcat(output,"\n");
+
 
 
 	}
@@ -296,14 +297,6 @@ int main(int argc, char **argv){
 
 	for(i=0;i<MAXTHR-1;i++){
 		printf("%d\t",i+2);
-		if(printOption == 1){
-			if(t_searchthread_parallel[i]<=t_searchthread_linear[0]){
-				printf("\033[0;32m");
-			}
-			else{
-				printf("\033[0;31m");
-			}
-		}
 
 		printf("%.6lf\t%.6lf\n",t_searchthread_parallel[i],parallel_desvpad[i]);
 		sprintf(temp,"%d",i+2);
@@ -315,17 +308,17 @@ int main(int argc, char **argv){
 		sprintf(temp,"%.6lf",parallel_desvpad[i]);
 		strcat(output,temp);
 		strcat(output,"\n");
-		if(printOption == 1)
-			printf("\033[0;37m");
 	}
 	printf("=====================\n\n");
-	printf("teste2\n%s end\n",output);
+	//printf("teste2\n%s end\n",output);
 	file1 = fopen(file1Name,"w");
 	fprintf(file1,output);
 	fclose(file1);
+	free(rect_search);
 	n_init = n;//?????????
 	}
-	//printf("\033[1;31m");
+	
+	RTreeFreeNode(root);
 	printf("MAXCARD: %d\n",MAXCARD);
 	printf("total time of insertion: %.6lf\n",t_insertionsum);
 	

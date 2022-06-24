@@ -48,6 +48,15 @@ void RTreeFreeNode(struct Node *p)
 {
 	assert(p);
 	//delete p;
+	//printf("after assert p\n");
+
+	if(p->branch[0].child != NULL){
+		if(p->level>0){
+			//printf("\tdentro do if != NULL level %d\n",p->level);
+			RTreeFreeNode(p->branch[0].child);
+			//printf("\tdentro do if != NULL depois da rec\n");
+		}
+	}
 	free(p);
 }
 
