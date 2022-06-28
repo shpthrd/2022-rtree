@@ -474,6 +474,6 @@ struct Branch
 struct Node
 {
 	int count;
-	int level; /* 0 is leaf, others positive 
+	int level; 0 is leaf, others positive 
 	struct Branch branch[MAXCARD];
 }; */
