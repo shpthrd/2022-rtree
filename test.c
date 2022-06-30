@@ -100,12 +100,133 @@ int main(int argc, char **argv){
 		rect_search->boundary[i]=n_rects+1;
 	
 	double t_searchthread_parallel[THRDINT];
-	double t_searchthread_linear[THRDINT];
-	double linear_desvpad[THRDINT];
 	double parallel_desvpad[THRDINT];
-	int THRDCOUNT;
+	double t_searchthread_linear;
+	double linear_desvpad;
+	
+	int k=0;
+	int n_search_linear = 0;
+	double time_per_repeat_linear[rpt];
+	memset(time_per_repeat_linear,0,rpt*sizeof(double));
+	//WARM UP CACHE
+	for(k=0;k<rpt;k++){
+		linear_total = 0;
+		double t_search_linear = 0;
+		//RTREESEARCH
+		uint64_t diff;
+		struct timespec tick, tock;
+		clock_gettime(CLOCK_REALTIME, &tick);
+			n_search_linear = RTreeSearch(root, rect_search);
+		clock_gettime(CLOCK_REALTIME, &tock);
+		diff = NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec;
+		t_search_linear =  (double)diff/NANOS;
+		t_searchsum_linear += t_search_linear;
+		time_per_repeat_linear[k] = t_search_linear;
+
+	}
+	t_searchsum_linear = 0;
+
+	//LINEAR RUN
+	for(k=0;k<rpt;k++){
+		linear_total = 0;
+		double t_search_linear = 0;
+		//RTREESEARCH
+		uint64_t diff;
+		struct timespec tick, tock;
+		clock_gettime(CLOCK_REALTIME, &tick);
+			n_search_linear = RTreeSearch(root, rect_search);
+		clock_gettime(CLOCK_REALTIME, &tock);
+		diff = NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec;
+		t_search_linear =  (double)diff/NANOS;
+		t_searchsum_linear += t_search_linear;
+		time_per_repeat_linear[k] = t_search_linear;
+
+	}
+	t_searchthread_linear = t_searchsum_linear/rpt;
+	linear_desvpad = 0;
+	for(k=0;k<rpt;k++){
+		linear_desvpad += pow(time_per_repeat_linear[k]-t_searchthread_linear,2); 
+	}
+	linear_desvpad = sqrt(linear_desvpad/rpt);
+
+
+
+	int THRDCOUNT=THRDINT;
+	//REPETIÇÕES
+	double time_per_repeat_parallel[rpt];
+	int count_queue = 0,max_queue =0;
+	int n_search_parallel = 0;
+	int THRDCOUNT2;
+	//WARMUP
+	for(THRDCOUNT=THRDINT;THRDCOUNT<=THRDINT;THRDCOUNT++){
+		THRDCOUNT2 = (int)pow(2,THRDINT);
+		t_searchsum_linear=0;
+		t_searchsum_parallel=0;
+		memset(time_per_repeat_parallel,0,rpt*sizeof(double));
+		n_search_parallel = 0;
+		count_queue = 0;
+		max_queue =0;
+		for(k=0;k<rpt;k++){
+			double t_search_parallel = 0;
+			//vetor usado para parar os threads
+			kill = malloc(sizeof(struct Node));
+			kill->level=-1;
+			//RTREESEARCH PARALELA
+			pthread_t thre[THRDCOUNT2];
+			QueueInit();
+			queue->active= THRDCOUNT2;
+			queue->sum=0;
+			queue->size=0;
+			queue->maxSize=0;
+			queue->count=0;
+			uint64_t diff2;
+			struct timespec tick2, tock2;
+			Data data_parallel[THRDCOUNT2];
+			n_search_parallel=0;
+			queue->active= 0;
+			queue->inactive =THRDCOUNT2;
+			double t_waitw[THRDCOUNT2];
+			memset( t_waitw, 0, THRDCOUNT2*sizeof(double) );
+			double t_schw[THRDCOUNT2];
+			memset( t_schw, 0, THRDCOUNT2*sizeof(double) );
+			for(i=0;i<THRDCOUNT2;i++){
+				data_parallel[i].node=NULL;
+				data_parallel[i].hits = &n_search_parallel;
+				data_parallel[i].time_wait = &t_waitw[i];
+				data_parallel[i].time_search = &t_schw[i];
+			}
+			
+			for(i=0;i<root->count;i++)
+				QueuePush(root->branch[i].child);
+			clock_gettime(CLOCK_REALTIME, &tick2);
+			for(i=0;i<THRDCOUNT2;i++)
+				pthread_create(&thre[i],NULL,InitThread,&data_parallel[i]);
+			for(i=0;i<THRDCOUNT2;i++)
+				pthread_join(thre[i],NULL);
+			clock_gettime(CLOCK_REALTIME, &tock2);
+			diff2 = NANOS * (tock2.tv_sec - tick2.tv_sec) + tock2.tv_nsec - tick2.tv_nsec;
+			//ESTE É A MEDIDA DO TEMPO EM CADA REPETIÇÃO EM CADA THREAD A CADA DELTA QTD
+			t_search_parallel =  (double)diff2/NANOS;
+			t_searchsum_parallel += t_search_parallel;
+			time_per_repeat_parallel[k] = t_search_parallel;
+			count_queue += queue->count;
+			max_queue += queue->maxSize;
+			QueueKill();
+			free(kill);
+		}
+		t_searchthread_parallel[THRDCOUNT-1] = t_searchsum_parallel/rpt;
+		parallel_desvpad[THRDCOUNT-1] = 0;
+		
+		for(k=0;k<rpt;k++){
+			parallel_desvpad[THRDCOUNT-1] += pow(time_per_repeat_parallel[k]-t_searchthread_parallel[THRDCOUNT-1],2);
+		}
+		parallel_desvpad[THRDCOUNT-1] = sqrt(parallel_desvpad[THRDCOUNT-1]/rpt);
+		count_queue = count_queue/rpt;
+		max_queue = max_queue/rpt;
+	}
+	//================================================
 	for(THRDCOUNT = 1;THRDCOUNT <=THRDINT;THRDCOUNT++){
-		int THRDCOUNT2 = (int)pow(2,THRDCOUNT);
+		THRDCOUNT2 = (int)pow(2,THRDCOUNT);
 		printf("THRDCOUNT: %d\nTHRDCOUNT2: %d\n",THRDCOUNT,THRDCOUNT2);
 		t_searchsum_linear=0;
 		t_searchsum_parallel=0;
@@ -113,44 +234,12 @@ int main(int argc, char **argv){
 		double t_waitsum[THRDCOUNT2];
 		memset( t_worksum, 0, THRDCOUNT2*sizeof(double) );
 		memset( t_waitsum, 0, THRDCOUNT2*sizeof(double) );
-		int n_search_linear = 0,n_search_parallel = 0;
-
-		int count_queue = 0,max_queue =0;
-
-		//REPETIÇÕES
-		int k=0;
-		double time_per_repeat_parallel[rpt];
-		double time_per_repeat_linear[rpt];
 		memset(time_per_repeat_parallel,0,rpt*sizeof(double));
-		memset(time_per_repeat_linear,0,rpt*sizeof(double));
+		n_search_parallel = 0;
+		count_queue = 0;
+		max_queue =0;
 		for(k=0;k<rpt;k++){
-	
-			linear_total = 0;
-			
-			//n_search_linear~parallel a quantidade de dados encontrados nas pesquisas
-			//t_search_linear~parallel o tempo gasto por cada pesquisa
-			//int n_search_linear = 0,n_search_parallel = 0;
-			double t_search_linear = 0,t_search_parallel = 0;
-			
-
-			//RTreePrintNode(root,0);
-			//RTREESEARCH
-			uint64_t diff;
-			struct timespec tick, tock;
-			clock_gettime(CLOCK_REALTIME, &tick);
-				n_search_linear = RTreeSearch(root, rect_search);
-			clock_gettime(CLOCK_REALTIME, &tock);
-			diff = NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec;
-			t_search_linear =  (double)diff/NANOS;
-			t_searchsum_linear += t_search_linear;
-			time_per_repeat_linear[k] = t_search_linear;
-
-
-		//int THRDCOUNT;
-		//for(THRDCOUNT = 2;THRDCOUNT <=MAXTHR;THRDCOUNT++){
-			//printf("a\n");
-			//total_nodes = malloc(sizeof(int));
-			//*total_nodes = 0;
+			double t_search_parallel = 0;
 			//vetor usado para parar os threads
 			kill = malloc(sizeof(struct Node));
 			kill->level=-1;
@@ -194,48 +283,23 @@ int main(int argc, char **argv){
 			t_searchsum_parallel += t_search_parallel;
 			time_per_repeat_parallel[k] = t_search_parallel;
 
-			//prints para ver a quantidade de dados encontrada e o tempo de cada pesquisa
-			//printf("RTREESEARCH: %d \t RTREESEARCHparalela: %d\n",n_search_linear,n_search_parallel);
-
-			//print que imprime apenas o tempo
-			//printf("RTREESEARCH: %.6lf \t RTREESEARCHparalela: %.6lf\n", t_search_linear,t_search_parallel );
-			//printf("THREAD \t\tWORK \t\tWAIT\n");
 			for(i=0;i<THRDCOUNT2;i++){
-				//printf("THREAD %d: \t%.6lf\t%.6lf\n", i, *(data_parallel[i].time_search), *(data_parallel[i].time_wait));
 				t_worksum[i] += *(data_parallel[i].time_search);
 				t_waitsum[i] += *(data_parallel[i].time_wait);
 			
 			}
-			
-			/*
-			double soma=0;
-			for(i=0;i<THRDCOUNT;i++)
-				soma += (*(data_parallel[i].time_wait)) + (*(data_parallel[i].time_search));
-			printf("soma dos tempos wait e search: %.6lf\n", soma);
-			*/
-
-			//printf("QUEUE:contador: %ld\tmax: %ld\n",queue->count,queue->maxSize);
 			count_queue += queue->count;
 			max_queue += queue->maxSize;
-			//printf("nodes visitados| RTREESEARCH: %d | RTREESEARCHPARALELA:  %d\n",linear_total,*total_nodes);//no linear aparece um a mais porque o root não é contado no paralelo
-			//printf("tamanho da fila: %ld\n", queue->size);
 			QueueKill();
-			//free(total_nodes);
 			free(kill);
 		}
-		//COLOCAR AQUI O CALCULO DO DESVPAD DESVIO PADRAO
-
-		//este valor é a media do tempo de pesquisa usando o atual numero de threads THRDCOUNT
 		t_searchthread_parallel[THRDCOUNT-1] = t_searchsum_parallel/rpt;
-		t_searchthread_linear[THRDCOUNT-1] = t_searchsum_linear/rpt;
 		parallel_desvpad[THRDCOUNT-1] = 0;
-		linear_desvpad[THRDCOUNT-1] = 0;
+		
 		for(k=0;k<rpt;k++){
 			parallel_desvpad[THRDCOUNT-1] += pow(time_per_repeat_parallel[k]-t_searchthread_parallel[THRDCOUNT-1],2);
-			linear_desvpad[THRDCOUNT-1] += pow(time_per_repeat_linear[k]-t_searchthread_linear[THRDCOUNT-1],2); 
 		}
 		parallel_desvpad[THRDCOUNT-1] = sqrt(parallel_desvpad[THRDCOUNT-1]/rpt);
-		linear_desvpad[THRDCOUNT-1] = sqrt(linear_desvpad[THRDCOUNT-1]/rpt);
 
 		printf("RTREESEARCH: %d \t RTREESEARCHparalela: %d\n",n_search_linear,n_search_parallel);
 		printf("NUMERO DE THREADS: %d\n",THRDCOUNT2);
@@ -247,7 +311,7 @@ int main(int argc, char **argv){
 		max_queue = max_queue/rpt;
 		printf("queue:count %d\tmax %d\n",count_queue,max_queue);
 		printf("#rpt: %d\n#linear avg:\tdesvpad:\n",rpt);
-		printf("%.6lf\t%.6lf\n",t_searchthread_linear[THRDCOUNT-1],linear_desvpad[THRDCOUNT-1]);
+		printf("%.6lf\t%.6lf\n",t_searchthread_linear,linear_desvpad);
 		printf("parallel avg:\tdesvpad:\n");
 		printf("%.6lf\t%.6lf\n",t_searchthread_parallel[THRDCOUNT-1],parallel_desvpad[THRDCOUNT-1]);
 		printf("\n");
@@ -280,14 +344,14 @@ int main(int argc, char **argv){
 
 	//for(i=0;i<MAXTHR-1;i++){
 	for(i=0;i<THRDINT;i++){
-		printf("%d\t%.6lf\t%.6lf\n",(int)pow(2,i+1),t_searchthread_linear[i],linear_desvpad[i]);
+		printf("%d\t%.6lf\t%.6lf\n",(int)pow(2,i+1),t_searchthread_linear,linear_desvpad);
 		sprintf(temp,"%d",(int)pow(2,i+1));
 		strcat(output,temp);
 		strcat(output,"\t");
-		sprintf(temp,"%.6lf",t_searchthread_linear[i]);
+		sprintf(temp,"%.6lf",t_searchthread_linear);
 		strcat(output,temp);
 		strcat(output,"\t");
-		sprintf(temp,"%.6lf",linear_desvpad[i]);
+		sprintf(temp,"%.6lf",linear_desvpad);
 		strcat(output,temp);
 		strcat(output,"\n");
 
