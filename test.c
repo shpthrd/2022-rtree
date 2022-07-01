@@ -125,6 +125,22 @@ int main(int argc, char **argv){
 
 	}
 	t_searchsum_linear = 0;
+	for(k=0;k<rpt;k++){
+		linear_total = 0;
+		double t_search_linear = 0;
+		//RTREESEARCH
+		uint64_t diff;
+		struct timespec tick, tock;
+		clock_gettime(CLOCK_REALTIME, &tick);
+			n_search_linear = RTreeSearch(root, rect_search);
+		clock_gettime(CLOCK_REALTIME, &tock);
+		diff = NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec;
+		t_search_linear =  (double)diff/NANOS;
+		t_searchsum_linear += t_search_linear;
+		time_per_repeat_linear[k] = t_search_linear;
+
+	}
+	t_searchsum_linear = 0;
 
 	//LINEAR RUN
 	for(k=0;k<rpt;k++){
