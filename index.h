@@ -33,7 +33,7 @@ typedef float RectReal;
 #define NUMSIDES (2*NUMDIMS)
 #define ENTRY int
 #define NANOS ((unsigned long)1000000000)
-#define rpt 30
+#define rpt 35
 int MAXTHR;
 int threads;
 int total_threads;

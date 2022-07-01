@@ -9,7 +9,7 @@ int main(int argc, char **argv){
 	//dois parâmetros de entrada
 	//1: quantidade de dados
 	//2: quantidade de threads
-	//3: color printf
+	//3: sufixo
 	if(argc<3){
 		printf("digite o tamanho do vetor e o número de threads\n");
 		exit(1);
@@ -31,18 +31,12 @@ int main(int argc, char **argv){
 	int printOption = 0;
 	char* sufix;
 	if(argc>=4){
-		if(atoi(*(argv+3))==1){
-			printOption = 1;
-		}
-		else if(atoi(*(argv+3))==2){
-			printOption = 2;
-		}
-		else{
 			sufix = argv[3];
-		}
 	}
 	if(sufix != NULL)
 		printf("%s\n",sufix);
+	else
+		sufix = "no-name";
 	struct Rect *rects = malloc(sizeof(struct Rect) * n_rects);
 	double t_searchsum_linear,t_searchsum_parallel;
 	int i;
