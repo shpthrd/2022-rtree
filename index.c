@@ -94,17 +94,15 @@ void* RTreeSearchParalela(void* arg){
   }
   else /* this is a leaf node */
   {
-    //printf("%d:: cheguei na folha\n", pthread_self());
     for (i=0; i<LEAFCARD; i++)
     if (n->branch[i].child && RTreeOverlap(rect_search,&n->branch[i].rect)){
-      __sync_fetch_and_add(data->hits, 1);
+      __sync_fetch_and_add(data->hits, 1);//poderia implementar um contador local para cada thread e somar no final ao invés de fazer o sync
     }
   }
 
 }
 
 void* InitThread(void* arg){
-  //printf("thread: %d\n", pthread_self());
   int c=0;
   Data* data= (Data*)arg;
   *(data->time_search) = 0;
