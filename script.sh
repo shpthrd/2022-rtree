@@ -1,3 +1,3 @@
 #!/bin/bash
 make run
-./run 100000 4 testing > output.info
+./run 100000000 256 em-machine > output.info
