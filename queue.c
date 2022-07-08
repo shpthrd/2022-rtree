@@ -29,6 +29,10 @@ struct Node* QueuePop(){
     if((queue->active)-- <0){
       pthread_mutex_unlock(&queue_mutex);
       pthread_cond_broadcast(&pop_cond);
+      if(first_kill == 0){
+        first_kill = 1;
+        clock_gettime(CLOCK_REALTIME, &tick_kill);
+      }
       return kill;
     }
     

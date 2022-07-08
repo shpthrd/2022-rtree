@@ -40,6 +40,11 @@ int total_threads;
 double* time_push;
 int* total_nodes;
 int linear_total;
+int first_kill;
+double killtime_sum;
+uint64_t diff_kill;
+struct timespec tick_kill;
+
 //variaveis usadas nos pthreads
 pthread_cond_t pop_cond, push_cond;
 pthread_mutex_t queue_mutex;

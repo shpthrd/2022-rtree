@@ -162,6 +162,7 @@ int main(int argc, char **argv){
 		int count_queue = 0,max_queue =0;
 		int n_search_parallel = 0;
 		int THRDCOUNT2;
+		first_kill = 1;
 		//WARMUP
 		for(THRDCOUNT=THRDINT;THRDCOUNT<=THRDINT;THRDCOUNT++){
 			THRDCOUNT2 = (int)pow(2,THRDINT);
@@ -230,6 +231,7 @@ int main(int argc, char **argv){
 			max_queue = max_queue/rpt;
 		}
 		//================================================
+		//REAL
 		for(THRDCOUNT = 1;THRDCOUNT <=THRDINT;THRDCOUNT++){
 			THRDCOUNT2 = (int)pow(2,THRDCOUNT);
 			printf("THRDCOUNT: %d\nTHRDCOUNT2: %d\n",THRDCOUNT,THRDCOUNT2);
@@ -245,6 +247,7 @@ int main(int argc, char **argv){
 
 			count_queue = 0;
 			max_queue =0;
+			killtime_sum = 0;
 			for(k=0;k<rpt;k++){
 				double t_search_parallel = 0;
 				//vetor usado para parar os threads
@@ -277,7 +280,7 @@ int main(int argc, char **argv){
 					data_parallel[i].time_wait = &t_wait[i];
 					data_parallel[i].time_search = &t_sch[i];
 				}
-				
+				first_kill = 0;
 				for(i=0;i<root->count;i++)
 					QueuePush(root->branch[i].child);
 				clock_gettime(CLOCK_REALTIME, &tick2);
@@ -287,8 +290,11 @@ int main(int argc, char **argv){
 					pthread_join(thre[i],NULL);
 				clock_gettime(CLOCK_REALTIME, &tock2);
 				diff2 = NANOS * (tock2.tv_sec - tick2.tv_sec) + tock2.tv_nsec - tick2.tv_nsec;
+				diff_kill = NANOS * (tock2.tv_sec - tick_kill.tv_sec) + tock2.tv_nsec - tick_kill.tv_nsec;
+				double killtime = (double) diff_kill/NANOS;
+				killtime_sum += killtime;
 				//ESTE É A MEDIDA DO TEMPO EM CADA REPETIÇÃO EM CADA THREAD A CADA DELTA QTD
-				t_search_parallel =  (double)diff2/NANOS;
+				t_search_parallel =  ((double)diff2/NANOS)-killtime;
 
 				t_searchsum_parallel += t_search_parallel;
 				time_per_repeat_parallel[k] = t_search_parallel;
@@ -326,6 +332,7 @@ int main(int argc, char **argv){
 			printf("%.6lf\t%.6lf\n",t_searchthread_linear,linear_desvpad);
 			printf("parallel avg:\tdesvpad:\n");
 			printf("%.6lf\t%.6lf\n",t_searchthread_parallel[THRDCOUNT-1],parallel_desvpad[THRDCOUNT-1]);
+			printf("time to kill: %.6f\n",killtime_sum/rpt);
 			printf("\n");
 		}
 		//printf("total de nodes: %d\n",linear_total);
