@@ -90,6 +90,9 @@ typedef struct data{
 	int* hits;
 	double* time_wait;
 	double* time_search;
+	double* time_pop;
+	double* time_push;
+	double* time_push_wait;
 } Data;
 
 //structs para o uso da fila
@@ -149,7 +152,10 @@ int RTreeGetLeafMax();
 
 
 void QueuePush(struct Node* node);
+void QueuePush2(struct Node* node);
+void QueuePush3(struct Node* node,double* time_push_wait);
 struct Node* QueuePop();
+struct Node* QueuePop2(double*);
 void QueueInit();
 void QueueKill();
 

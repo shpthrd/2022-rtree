@@ -172,7 +172,7 @@ int main(int argc, char **argv){
 			n_search_parallel = 0;
 			count_queue = 0;
 			max_queue =0;
-			for(k=0;k<rpt;k++){
+			for(k=0;k<rpt/2;k++){
 				double t_search_parallel = 0;
 				//vetor usado para parar os threads
 				kill = malloc(sizeof(struct Node));
@@ -181,7 +181,7 @@ int main(int argc, char **argv){
 				pthread_t thre[THRDCOUNT2];
 				QueueInit();
 				queue->active= THRDCOUNT2;
-				queue->sum=0;
+				//queue->sum=0;
 				queue->size=0;
 				queue->maxSize=0;
 				queue->count=0;
@@ -195,11 +195,20 @@ int main(int argc, char **argv){
 				memset( t_waitw, 0, THRDCOUNT2*sizeof(double) );
 				double t_schw[THRDCOUNT2];
 				memset( t_schw, 0, THRDCOUNT2*sizeof(double) );
+				double t_popw[THRDCOUNT2];
+				memset( t_popw, 0, THRDCOUNT2*sizeof(double) );
+				double t_pushw[THRDCOUNT2];
+				memset( t_pushw, 0, THRDCOUNT2*sizeof(double) );
+				double t_pushww[THRDCOUNT2];
+				memset( t_pushww, 0, THRDCOUNT2*sizeof(double) );
 				for(i=0;i<THRDCOUNT2;i++){
 					data_parallel[i].node=NULL;
 					data_parallel[i].hits = &n_search_parallel;
 					data_parallel[i].time_wait = &t_waitw[i];
 					data_parallel[i].time_search = &t_schw[i];
+					data_parallel[i].time_pop = &t_popw[i];
+					data_parallel[i].time_push = &t_pushw[i];
+					data_parallel[i].time_push_wait = &t_pushww[i];
 				}
 				
 				for(i=0;i<root->count;i++)
@@ -239,8 +248,14 @@ int main(int argc, char **argv){
 			t_searchsum_parallel=0;
 			double t_worksum[THRDCOUNT2];
 			double t_waitsum[THRDCOUNT2];
+			double t_popsum[THRDCOUNT2];
+			double t_pushsum[THRDCOUNT2];
+			double t_push_waitsum[THRDCOUNT2];
 			memset( t_worksum, 0, THRDCOUNT2*sizeof(double) );
 			memset( t_waitsum, 0, THRDCOUNT2*sizeof(double) );
+			memset( t_popsum, 0, THRDCOUNT2*sizeof(double) );
+			memset( t_pushsum, 0, THRDCOUNT2*sizeof(double) );
+			memset( t_push_waitsum, 0, THRDCOUNT2*sizeof(double) );
 			memset(time_per_repeat_parallel,0,rpt*sizeof(double));
 			n_search_parallel = 0;
 			int n_search_parallel_thread[THRDCOUNT2];
@@ -248,6 +263,7 @@ int main(int argc, char **argv){
 			count_queue = 0;
 			max_queue =0;
 			killtime_sum = 0;
+			//printf("a\n");
 			for(k=0;k<rpt;k++){
 				double t_search_parallel = 0;
 				//vetor usado para parar os threads
@@ -257,15 +273,13 @@ int main(int argc, char **argv){
 				pthread_t thre[THRDCOUNT2];
 				QueueInit();
 				queue->active= THRDCOUNT2;
-				queue->sum=0;
+				//queue->sum=0;
 				queue->size=0;
 				queue->maxSize=0;
 				queue->count=0;
 				uint64_t diff2;
 				struct timespec tick2, tock2;
 				Data data_parallel[THRDCOUNT2];
-				//n_search_parallel=0;
-				
 				memset( n_search_parallel_thread, 0, THRDCOUNT2*sizeof(int));
 				queue->active= 0;
 				queue->inactive =THRDCOUNT2;
@@ -273,12 +287,20 @@ int main(int argc, char **argv){
 				memset( t_wait, 0, THRDCOUNT2*sizeof(double) );
 				double t_sch[THRDCOUNT2];
 				memset( t_sch, 0, THRDCOUNT2*sizeof(double) );
+				double t_pop[THRDCOUNT2];
+				memset( t_pop, 0, THRDCOUNT2*sizeof(double) );
+				double t_push[THRDCOUNT2];
+				memset( t_push, 0, THRDCOUNT2*sizeof(double) );
+				double t_push_wait[THRDCOUNT2];
+				memset( t_push_wait, 0, THRDCOUNT2*sizeof(double) );
 				for(i=0;i<THRDCOUNT2;i++){
 					data_parallel[i].node=NULL;
-					//data_parallel[i].hits = &n_search_parallel;
 					data_parallel[i].hits = &n_search_parallel_thread[i];
 					data_parallel[i].time_wait = &t_wait[i];
 					data_parallel[i].time_search = &t_sch[i];
+					data_parallel[i].time_pop = &t_pop[i];
+					data_parallel[i].time_push = &t_push[i];
+					data_parallel[i].time_push_wait = &t_push_wait[i];
 				}
 				first_kill = 0;
 				for(i=0;i<root->count;i++)
@@ -302,7 +324,9 @@ int main(int argc, char **argv){
 				for(i=0;i<THRDCOUNT2;i++){
 					t_worksum[i] += *(data_parallel[i].time_search);
 					t_waitsum[i] += *(data_parallel[i].time_wait);
-				
+					t_popsum[i] += *(data_parallel[i].time_pop);
+					t_pushsum[i] += *(data_parallel[i].time_push);
+					t_push_waitsum[i] += *(data_parallel[i].time_push_wait);
 				}
 				count_queue += queue->count;
 				max_queue += queue->maxSize;
@@ -321,9 +345,9 @@ int main(int argc, char **argv){
 			}
 			printf("RTREESEARCH: %d \t RTREESEARCHparalela: %d\n",n_search_linear,n_search_parallel);
 			printf("NUMERO DE THREADS: %d\n",THRDCOUNT2);
-			printf("THREAD \t\tWORK \t\tWAIT\n");
+			printf("THREAD \t\tWORK \t\tPUSH\t\tPUSH_WAIT\tWAIT\t\tPOP\n");
 			for(i=0;i<THRDCOUNT2;i++){
-				printf("THREAD %d: \t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_waitsum[i]/rpt);
+				printf("THREAD %d: \t%.6lf\t%.6lf\t%.6lf\t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_pushsum[i]/rpt,t_push_waitsum[i]/rpt,t_waitsum[i]/rpt,t_popsum[i]/rpt);
 			}
 			count_queue = count_queue/rpt;
 			max_queue = max_queue/rpt;

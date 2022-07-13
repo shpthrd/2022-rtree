@@ -82,12 +82,20 @@ void* RTreeSearchParalela(void* arg){
       //pushToggle++;
       //if(pushToggle%2 == 0 && queue->inactive>0){//alterna entre push e fazer o trabalho local
       if(queue->inactive>0){
-        QueuePush((n->branch[i]).child);
+        uint64_t diff_push;
+	      struct timespec tick_push, tock_push;
+        clock_gettime(CLOCK_REALTIME, &tick_push);
+        QueuePush3((n->branch[i]).child,data->time_push_wait);
+        clock_gettime(CLOCK_REALTIME, &tock_push);
+        diff_push = NANOS * (tock_push.tv_sec - tick_push.tv_sec) + tock_push.tv_nsec - tick_push.tv_nsec;
+        *(data->time_push) += (double)diff_push/NANOS;
       }
       else{
         Data newsearch;
         newsearch.node = &((n->branch[i]).child);
         newsearch.hits = data->hits;
+        newsearch.time_push = data->time_push;
+        newsearch.time_push_wait = data->time_push_wait;
         RTreeSearchParalela(&newsearch);
       }
     }
@@ -96,7 +104,8 @@ void* RTreeSearchParalela(void* arg){
   {
     for (i=0; i<LEAFCARD; i++)
     if (n->branch[i].child && RTreeOverlap(rect_search,&n->branch[i].rect)){
-      __sync_fetch_and_add(data->hits, 1);//poderia implementar um contador local para cada thread e somar no final ao invés de fazer o sync
+      //__sync_fetch_and_add(data->hits, 1);//poderia implementar um contador local para cada thread e somar no final ao invés de fazer o sync
+      *data->hits = *(data->hits)+1;
     }
   }
 
@@ -113,7 +122,7 @@ void* InitThread(void* arg){
     struct Node* n;
     queue->inactive++;
     clock_gettime(CLOCK_REALTIME, &tick);
-    n = QueuePop();
+    n = QueuePop2(data->time_pop);
     clock_gettime(CLOCK_REALTIME, &tock);
     diff = NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec;
     *(data->time_wait) += (double)diff/NANOS;
