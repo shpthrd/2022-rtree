@@ -345,9 +345,9 @@ int main(int argc, char **argv){
 			}
 			printf("RTREESEARCH: %d \t RTREESEARCHparalela: %d\n",n_search_linear,n_search_parallel);
 			printf("NUMERO DE THREADS: %d\n",THRDCOUNT2);
-			printf("THREAD \t\tWORK \t\tPUSH\t\tPUSH_WAIT\tWAIT\t\tPOP\n");
+			printf("THREAD \tWORK \tPUSH\tPUSH_WAIT\tPOP\tPOP_WAIT\n");
 			for(i=0;i<THRDCOUNT2;i++){
-				printf("THREAD %d: \t%.6lf\t%.6lf\t%.6lf\t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_pushsum[i]/rpt,t_push_waitsum[i]/rpt,t_waitsum[i]/rpt,t_popsum[i]/rpt);
+				printf("THREAD %d: \t%.6lf\t%.6lf\t%.6lf\t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_pushsum[i]/rpt,t_push_waitsum[i]/rpt,t_waitsum[i]/rpt,(t_waitsum-t_popsum[i])/rpt);
 			}
 			count_queue = count_queue/rpt;
 			max_queue = max_queue/rpt;
