@@ -316,7 +316,7 @@ int main(int argc, char **argv){
 				double killtime = (double) diff_kill/NANOS;
 				killtime_sum += killtime;
 				//ESTE É A MEDIDA DO TEMPO EM CADA REPETIÇÃO EM CADA THREAD A CADA DELTA QTD
-				t_search_parallel =  ((double)diff2/NANOS)-killtime;
+				t_search_parallel =  ((double)diff2/NANOS);
 
 				t_searchsum_parallel += t_search_parallel;
 				time_per_repeat_parallel[k] = t_search_parallel;
@@ -347,7 +347,7 @@ int main(int argc, char **argv){
 			printf("NUMERO DE THREADS: %d\n",THRDCOUNT2);
 			printf("THREAD \tWORK \tPUSH\tPUSH_WAIT\tPOP\tPOP_WAIT\n");
 			for(i=0;i<THRDCOUNT2;i++){
-				printf("THREAD %d: \t%.6lf\t%.6lf\t%.6lf\t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_pushsum[i]/rpt,t_push_waitsum[i]/rpt,t_waitsum[i]/rpt,(t_waitsum-t_popsum[i])/rpt);
+				printf("THREAD %d: \t%.6lf\t%.6lf\t%.6lf\t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_pushsum[i]/rpt,t_push_waitsum[i]/rpt,t_waitsum[i]/rpt,(t_waitsum[i]-t_popsum[i])/rpt);
 			}
 			count_queue = count_queue/rpt;
 			max_queue = max_queue/rpt;
