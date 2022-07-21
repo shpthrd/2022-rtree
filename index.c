@@ -96,6 +96,7 @@ void* RTreeSearchParalela(void* arg){
         newsearch.hits = data->hits;
         newsearch.time_push = data->time_push;
         newsearch.time_push_wait = data->time_push_wait;
+        newsearch.time_empty = data->time_empty;
         RTreeSearchParalela(&newsearch);
       }
     }
@@ -122,7 +123,8 @@ void* InitThread(void* arg){
     struct Node* n;
     queue->inactive++;
     clock_gettime(CLOCK_REALTIME, &tick);
-    n = QueuePop2(data->time_pop);
+    //n = QueuePop2(data->time_pop);
+    n = QueuePop3(data->time_pop,data->time_empty);
     clock_gettime(CLOCK_REALTIME, &tock);
     diff = NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec;
     *(data->time_wait) += (double)diff/NANOS;

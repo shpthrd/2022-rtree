@@ -197,6 +197,8 @@ int main(int argc, char **argv){
 				memset( t_schw, 0, THRDCOUNT2*sizeof(double) );
 				double t_popw[THRDCOUNT2];
 				memset( t_popw, 0, THRDCOUNT2*sizeof(double) );
+				double t_popempty[THRDCOUNT2];
+				memset( t_popempty, 0, THRDCOUNT2*sizeof(double) );
 				double t_pushw[THRDCOUNT2];
 				memset( t_pushw, 0, THRDCOUNT2*sizeof(double) );
 				double t_pushww[THRDCOUNT2];
@@ -207,6 +209,7 @@ int main(int argc, char **argv){
 					data_parallel[i].time_wait = &t_waitw[i];
 					data_parallel[i].time_search = &t_schw[i];
 					data_parallel[i].time_pop = &t_popw[i];
+					data_parallel[i].time_empty = &t_popempty[i];
 					data_parallel[i].time_push = &t_pushw[i];
 					data_parallel[i].time_push_wait = &t_pushww[i];
 				}
@@ -249,11 +252,13 @@ int main(int argc, char **argv){
 			double t_worksum[THRDCOUNT2];
 			double t_waitsum[THRDCOUNT2];
 			double t_popsum[THRDCOUNT2];
+			double t_emptysum[THRDCOUNT2];
 			double t_pushsum[THRDCOUNT2];
 			double t_push_waitsum[THRDCOUNT2];
 			memset( t_worksum, 0, THRDCOUNT2*sizeof(double) );
 			memset( t_waitsum, 0, THRDCOUNT2*sizeof(double) );
 			memset( t_popsum, 0, THRDCOUNT2*sizeof(double) );
+			memset( t_emptysum, 0, THRDCOUNT2*sizeof(double) );
 			memset( t_pushsum, 0, THRDCOUNT2*sizeof(double) );
 			memset( t_push_waitsum, 0, THRDCOUNT2*sizeof(double) );
 			memset(time_per_repeat_parallel,0,rpt*sizeof(double));
@@ -289,6 +294,8 @@ int main(int argc, char **argv){
 				memset( t_sch, 0, THRDCOUNT2*sizeof(double) );
 				double t_pop[THRDCOUNT2];
 				memset( t_pop, 0, THRDCOUNT2*sizeof(double) );
+				double t_empty[THRDCOUNT2];
+				memset( t_empty, 0, THRDCOUNT2*sizeof(double) );
 				double t_push[THRDCOUNT2];
 				memset( t_push, 0, THRDCOUNT2*sizeof(double) );
 				double t_push_wait[THRDCOUNT2];
@@ -299,6 +306,7 @@ int main(int argc, char **argv){
 					data_parallel[i].time_wait = &t_wait[i];
 					data_parallel[i].time_search = &t_sch[i];
 					data_parallel[i].time_pop = &t_pop[i];
+					data_parallel[i].time_empty = &t_empty[i];
 					data_parallel[i].time_push = &t_push[i];
 					data_parallel[i].time_push_wait = &t_push_wait[i];
 				}
@@ -325,6 +333,7 @@ int main(int argc, char **argv){
 					t_worksum[i] += *(data_parallel[i].time_search);
 					t_waitsum[i] += *(data_parallel[i].time_wait);
 					t_popsum[i] += *(data_parallel[i].time_pop);
+					t_emptysum[i] += *(data_parallel[i].time_empty);
 					t_pushsum[i] += *(data_parallel[i].time_push);
 					t_push_waitsum[i] += *(data_parallel[i].time_push_wait);
 				}
@@ -345,9 +354,9 @@ int main(int argc, char **argv){
 			}
 			printf("RTREESEARCH: %d \t RTREESEARCHparalela: %d\n",n_search_linear,n_search_parallel);
 			printf("NUMERO DE THREADS: %d\n",THRDCOUNT2);
-			printf("THREAD \tWORK \tPUSH\tPUSH_WAIT\tPOP\tPOP_WAIT\n");
+			printf("THREAD \tWORK \tPUSH\tPUSH_WAIT\tPOP\tPOP_WAIT\tPOP_EMPTY\n");
 			for(i=0;i<THRDCOUNT2;i++){
-				printf("THREAD %d: \t%.6lf\t%.6lf\t%.6lf\t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_pushsum[i]/rpt,t_push_waitsum[i]/rpt,t_waitsum[i]/rpt,(t_waitsum[i]-t_popsum[i])/rpt);
+				printf("THREAD %d: \t%.6lf\t%.6lf\t%.6lf\t%.6lf\t%.6lf\t%.6lf\n", i, t_worksum[i]/rpt,t_pushsum[i]/rpt,t_push_waitsum[i]/rpt,t_waitsum[i]/rpt,(t_waitsum[i]-t_popsum[i])/rpt,t_emptysum[i]/rpt);
 			}
 			count_queue = count_queue/rpt;
 			max_queue = max_queue/rpt;

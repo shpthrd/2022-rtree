@@ -93,6 +93,7 @@ typedef struct data{
 	double* time_pop;
 	double* time_push;
 	double* time_push_wait;
+	double* time_empty;
 } Data;
 
 //structs para o uso da fila
@@ -156,6 +157,7 @@ void QueuePush2(struct Node* node);
 void QueuePush3(struct Node* node,double* time_push_wait);
 struct Node* QueuePop();
 struct Node* QueuePop2(double*);
+struct Node* QueuePop3(double* ,double*);
 void QueueInit();
 void QueueKill();
 
