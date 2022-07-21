@@ -166,6 +166,7 @@ int main(int argc, char **argv){
 		//WARMUP
 		for(THRDCOUNT=THRDINT;THRDCOUNT<=THRDINT;THRDCOUNT++){
 			THRDCOUNT2 = (int)pow(2,THRDINT);
+			current_threads = THRDCOUNT2;
 			t_searchsum_linear=0;
 			t_searchsum_parallel=0;
 			memset(time_per_repeat_parallel,0,rpt*sizeof(double));
@@ -246,6 +247,7 @@ int main(int argc, char **argv){
 		//REAL
 		for(THRDCOUNT = 1;THRDCOUNT <=THRDINT;THRDCOUNT++){
 			THRDCOUNT2 = (int)pow(2,THRDCOUNT);
+			current_threads = THRDCOUNT2;
 			printf("THRDCOUNT: %d\nTHRDCOUNT2: %d\n",THRDCOUNT,THRDCOUNT2);
 			t_searchsum_linear=0;
 			t_searchsum_parallel=0;

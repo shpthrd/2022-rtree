@@ -81,7 +81,7 @@ void* RTreeSearchParalela(void* arg){
     if ((n->branch[i]).child && RTreeOverlap(rect_search,&(n->branch[i].rect))){
       //pushToggle++;
       //if(pushToggle%2 == 0 && queue->inactive>0){//alterna entre push e fazer o trabalho local
-      if(queue->inactive>0){
+      if(queue->inactive>0 && queue->size < current_threads){
         uint64_t diff_push;
 	      struct timespec tick_push, tock_push;
         clock_gettime(CLOCK_REALTIME, &tick_push);

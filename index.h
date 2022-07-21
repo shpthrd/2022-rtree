@@ -35,6 +35,7 @@ typedef float RectReal;
 #define NANOS ((unsigned long)1000000000)
 #define rpt 35
 int MAXTHR;
+int current_threads;
 int threads;
 int total_threads;
 double* time_push;
