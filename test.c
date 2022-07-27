@@ -10,14 +10,15 @@ int main(int argc, char **argv){
 	//1: quantidade de dados
 	//2: quantidade de threads
 	//3: sufixo
-	if(argc<3){
-		printf("digite o tamanho do vetor e o número de threads\n");
+	if(argc<3 || argc >3){
+		printf("digite o tamanho do vetor e o nome do arquivo\n");
 		exit(1);
 	}
 
 	//VERIFICAÇÃO DE PARAMETROS
 	int n_rects = atoi(*(argv+1));
-	MAXTHR = atoi(*(argv+2));
+	//MAXTHR = atoi(*(argv+2));
+	MAXTHR = 512;
 	if(n_rects<=0){
 		printf("input invalido\n" );
 		exit(1);
@@ -27,10 +28,12 @@ int main(int argc, char **argv){
 		temp_thrd = temp_thrd / 2;
 		THRDINT++;
 	}
+	int thread_array[] = {2,4,8,16,32,64,96,128,160,192,224,256,320,384,448,512};
+	THRDINT = sizeof(thread_array)/sizeof(thread_array[0]);
 	printf("THRDINT: %d\n",THRDINT);
 	char* sufix;//sufixo para identificar o arquivo
-	if(argc>=4){
-			sufix = argv[3];
+	if(argc>=3){
+			sufix = argv[2];
 	}
 	if(sufix != NULL)
 		printf("%s\n",sufix);
@@ -165,7 +168,8 @@ int main(int argc, char **argv){
 		first_kill = 1;
 		//WARMUP
 		for(THRDCOUNT=THRDINT;THRDCOUNT<=THRDINT;THRDCOUNT++){
-			THRDCOUNT2 = (int)pow(2,THRDINT);
+			//THRDCOUNT2 = (int)pow(2,THRDINT);
+			THRDCOUNT2 = thread_array[THRDCOUNT-1];
 			current_threads = THRDCOUNT2;
 			t_searchsum_linear=0;
 			t_searchsum_parallel=0;
@@ -245,8 +249,9 @@ int main(int argc, char **argv){
 		}
 		//================================================
 		//REAL
-		for(THRDCOUNT = 1;THRDCOUNT <=THRDINT;THRDCOUNT++){
-			THRDCOUNT2 = (int)pow(2,THRDCOUNT);
+		for(THRDCOUNT = 0;THRDCOUNT <THRDINT;THRDCOUNT++){
+			//THRDCOUNT2 = (int)pow(2,THRDCOUNT);
+			THRDCOUNT2 = thread_array[THRDCOUNT];
 			current_threads = THRDCOUNT2;
 			printf("THRDCOUNT: %d\nTHRDCOUNT2: %d\n",THRDCOUNT,THRDCOUNT2);
 			t_searchsum_linear=0;
@@ -398,8 +403,8 @@ int main(int argc, char **argv){
 
 		//for(i=0;i<MAXTHR-1;i++){
 		for(i=0;i<THRDINT;i++){
-			printf("%d\t%.6lf\t%.6lf\n",(int)pow(2,i+1),t_searchthread_linear,linear_desvpad);
-			sprintf(temp,"%d",(int)pow(2,i+1));
+			printf("%d\t%.6lf\t%.6lf\n",thread_array[i],t_searchthread_linear,linear_desvpad);
+			sprintf(temp,"%d",thread_array[i]);
 			strcat(output,temp);
 			strcat(output,"\t");
 			sprintf(temp,"%.6lf",t_searchthread_linear);
@@ -423,9 +428,9 @@ int main(int argc, char **argv){
 
 		//for(i=0;i<MAXTHR-1;i++){
 		for(i=0;i<THRDINT;i++){	
-			printf("%d\t",(int)pow(2,i+1));
+			printf("%d\t",thread_array[i]);
 			printf("%.6lf\t%.6lf\n",t_searchthread_parallel[i],parallel_desvpad[i]);
-			sprintf(temp,"%d",(int)pow(2,i+1));
+			sprintf(temp,"%d",thread_array[i]);
 			strcat(output,temp);
 			strcat(output,"\t");
 			sprintf(temp,"%.6lf",t_searchthread_parallel[i]);
