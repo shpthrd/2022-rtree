@@ -77,7 +77,7 @@ void* RTreeSearchParalela(void* arg){
   {
     for (i=0; i<NODECARD; i++)
     if ((n->branch[i]).child && RTreeOverlap(rect_search,&(n->branch[i].rect))){
-      if(queue->size < current_threads){// && queue->inactive >= current_threads/2){
+      if(queue->size < current_threads && queue->inactive >= current_threads/2){
         uint64_t diff_push;
 	      struct timespec tick_push, tock_push;
         clock_gettime(CLOCK_REALTIME, &tick_push);
