@@ -349,13 +349,13 @@ int main(int argc, char **argv){
 				QueueKill();
 				free(kill);
 			}
-			t_searchthread_parallel[THRDCOUNT-1] = t_searchsum_parallel/rpt;
-			parallel_desvpad[THRDCOUNT-1] = 0;
+			t_searchthread_parallel[THRDCOUNT] = t_searchsum_parallel/rpt;
+			parallel_desvpad[THRDCOUNT] = 0;
 			
 			for(k=0;k<rpt;k++){
-				parallel_desvpad[THRDCOUNT-1] += pow(time_per_repeat_parallel[k]-t_searchthread_parallel[THRDCOUNT-1],2);
+				parallel_desvpad[THRDCOUNT] += pow(time_per_repeat_parallel[k]-t_searchthread_parallel[THRDCOUNT],2);
 			}
-			parallel_desvpad[THRDCOUNT-1] = sqrt(parallel_desvpad[THRDCOUNT-1]/rpt);
+			parallel_desvpad[THRDCOUNT] = sqrt(parallel_desvpad[THRDCOUNT]/rpt);
 			for(i=0;i<THRDCOUNT2;i++){
 				n_search_parallel +=n_search_parallel_thread[i];
 			}
@@ -371,7 +371,7 @@ int main(int argc, char **argv){
 			printf("#rpt: %d\n#linear avg:\tdesvpad:\n",rpt);
 			printf("%.6lf\t%.6lf\n",t_searchthread_linear,linear_desvpad);
 			printf("parallel avg:\tdesvpad:\n");
-			printf("%.6lf\t%.6lf\n",t_searchthread_parallel[THRDCOUNT-1],parallel_desvpad[THRDCOUNT-1]);
+			printf("%.6lf\t%.6lf\n",t_searchthread_parallel[THRDCOUNT],parallel_desvpad[THRDCOUNT]);
 			printf("time to kill: %.6f\n",killtime_sum/rpt);
 			printf("\n");
 		}

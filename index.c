@@ -73,15 +73,11 @@ void* RTreeSearchParalela(void* arg){
   Data* data = (Data*) arg;
   register struct Node* n = *(data->node);
   int i;
-  //int pushToggle = 0;
-  //__sync_fetch_and_add(total_nodes,1);
   if (n->level > 0) /* this is an internal node in the tree */
   {
     for (i=0; i<NODECARD; i++)
     if ((n->branch[i]).child && RTreeOverlap(rect_search,&(n->branch[i].rect))){
-      //pushToggle++;
-      //if(pushToggle%2 == 0 && queue->inactive>0){//alterna entre push e fazer o trabalho local
-      if(queue->size < current_threads && queue->inactive >= current_threads/2){
+      if(queue->size < current_threads){// && queue->inactive >= current_threads/2){
         uint64_t diff_push;
 	      struct timespec tick_push, tock_push;
         clock_gettime(CLOCK_REALTIME, &tick_push);
